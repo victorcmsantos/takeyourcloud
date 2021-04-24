@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client as keystoneC
+import os
+import requests
+import argparse
+
+parser = argparse.ArgumentParser(description="List fish in aquarium.")
+parser.add_argument("--list-nodes", default=False, action="store_true")
+parser.add_argument("--add-node", default=False, action="store_true")
+args = parser.parse_args()
+
+OS_USERNAME = os.getenv('OS_USERNAME')
+OS_PASSWORD = os.getenv('OS_PASSWORD')
+OS_PROJECT_NAME = os.getenv('OS_PROJECT_NAME')
+OS_USER_DOMAIN_NAME = os.getenv('OS_USER_DOMAIN_NAME')
+OS_PROJECT_DOMAIN_NAME = os.getenv('OS_PROJECT_DOMAIN_NAME')
+OS_AUTH_URL = os.getenv('OS_AUTH_URL')
+OS_IDENTITY_API_VERSION = os.getenv('OS_IDENTITY_API_VERSION')
+OS_REGION_NAME = os.getenv('OS_REGION_NAME')
+
+auth_origin = v3.Password(
+  auth_url=OS_AUTH_URL,
+  username=OS_USERNAME,
+  password=OS_PASSWORD,
+  project_name=OS_PROJECT_NAME,
+  user_domain_name=OS_USER_DOMAIN_NAME,
+  project_domain_name=OS_PROJECT_DOMAIN_NAME
+)
+
+sess = session.Session(auth=auth_origin)
+token = sess.get_token()
+keystone = keystoneC.Client(session=sess)
+
+service_id = keystone.services.list(type='cloudaas')[0].id
+cloudaas_public_url = keystone.endpoints.list(service=service_id, interface='internal', region=OS_REGION_NAME)[0].url
+
+#print(token)
+#print(OS_AUTH_URL)
+
+if args.list_nodes:
+  nodes_get = requests.get("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
+  print(nodes_get.content)
+
+if args.add_node:
+  nodes_post = requests.post("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
+  print(nodes_post.content)
+

@@ -1,0 +1,83 @@
+#!/usr/bin/python3
+from flask import Flask
+from flask import request, jsonify
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client as keystoneC
+
+app = Flask(__name__)
+
+def check_headers():
+  if not request.is_json:
+    return False, jsonify({"msg": "Missing JSON in request"}), 400
+  if not request.json.get('auth_url'):
+    return False, jsonify({"msg": "auth_url is missing"}), 400
+  if not request.headers.get('X-Auth-Token'):
+    return False, jsonify({"msg": "X-Auth-Token is missing"}), 400
+  return True, jsonify({"try...": "%s/v1/" % request.headers['host']}), 200
+
+def token_validator():
+  result, json, http_code = check_headers()
+  if result:
+    token = request.headers['X-Auth-Token']
+    auth_url = request.json.get('auth_url')
+    try:
+      auth_token = v3.Token(
+        auth_url = auth_url,
+        token = token
+      )
+      sess_token = session.Session(auth=auth_token)
+      keystone = keystoneC.Client(session=sess_token)
+      keystone.tokens.validate(token)
+      return True, jsonify({"status": "everything is ok - nice if have some way to add all options here like a help -"}), 200
+    except Exception as e:
+      return False, jsonify({"ERROR": "%s" % e}), 400
+  else:
+    return result, json, http_code
+
+#@app.route('/', methods=['POST'])
+#def hello():
+#  result, json, http_code = check_headers()
+#  return json, http_code
+
+@app.route('/v1', methods=['POST'])
+def v1():
+  result, json, http_code = token_validator()
+  return json, http_code
+
+@app.route('/v1/nodes', methods=['POST', 'GET'])
+def v1nodes():
+  result, json, http_code = token_validator()
+  if result:
+    if request.method == 'GET':
+      return jsonify({"nodes": {}}), 200
+    if request.method == 'POST':
+      return jsonify({"nodesasdasdasd": {"asdasdsadasd": "asdsadsadsadsadd"}}), 200
+  else:
+    return json, http_code
+
+
+
+
+
+#@app.route('/v1/nodes/', methods=['POST'])
+#def v1nodes():
+#  result, json, http_code = token_validator()
+#  if result:
+#    return jsonify({"nodes": {}}), 200
+#  else:
+#    return json, http_code
+    
+
+
+  
+
+
+
+
+
+
+
+if __name__=='__main__':
+  app.run(host='0.0.0.0', port=8088)
+
