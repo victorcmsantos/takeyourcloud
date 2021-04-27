@@ -5,6 +5,7 @@ from keystoneclient.v3 import client as keystoneC
 import os
 import requests
 import argparse
+import sys
 
 parser = argparse.ArgumentParser(description="List fish in aquarium.")
 parser.add_argument("--list-nodes", default=False, action="store_true")
@@ -36,14 +37,23 @@ keystone = keystoneC.Client(session=sess)
 service_id = keystone.services.list(type='cloudaas')[0].id
 cloudaas_public_url = keystone.endpoints.list(service=service_id, interface='internal', region=OS_REGION_NAME)[0].url
 
-#print(token)
+print(token)
 #print(OS_AUTH_URL)
 
+if len(sys.argv)==1:
+  get_v1 = requests.get("%s/v1" % cloudaas_public_url, headers = {'X-Auth-Token': token} )
+  print(get_v1.content)
+  sys.exit(0)
+
 if args.list_nodes:
-  nodes_get = requests.get("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
+  nodes_get = requests.get("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token} )
   print(nodes_get.content)
+  sys.exit(0)
 
 if args.add_node:
-  nodes_post = requests.post("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
+  nodes_post = requests.post("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token} )
+  #nodes_post = requests.post("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
   print(nodes_post.content)
+  sys.exit(0)
+
 
