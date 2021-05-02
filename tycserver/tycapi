@@ -1,91 +1,94 @@
-#!/usr/bin/python3
-from flask import Flask
-from flask import request, jsonify
-from keystoneauth1.identity import v3
-from keystoneauth1 import session
-from keystoneclient.v3 import client as keystoneC
-from oslo_config import cfg
+###!/usr/bin/python3
+from app import app, db
 
-app = Flask(__name__)
-
-CONF = cfg.CONF
-keystone_authtoken = cfg.OptGroup(name = "keystone_authtoken")
-keystone_authtoken_opts=[
-  cfg.StrOpt('project_domain_name', default = '', help = ''),
-  cfg.StrOpt('project_name', default = '', help = ''),
-  cfg.StrOpt('user_domain_name', default = '', help = ''),
-  cfg.StrOpt('password', default = '', help = ''),
-  cfg.StrOpt('username', default = '', help = ''),
-  cfg.StrOpt('auth_url', default = '', help = ''),
-  cfg.StrOpt('region', default = '', help = ''),
-]
-CONF.register_group(keystone_authtoken)
-CONF.register_opts(keystone_authtoken_opts, keystone_authtoken)
-CONF(default_config_files=['tyc.conf',])
-
-def check_token():
-  if not request.headers.get('X-Auth-Token'):
-    return False, jsonify({"msg": "X-Auth-Token is missing"}), 400
-  return True, jsonify({"try...": "%s/v1/" % request.headers['host']}), 200
-
-def check_headers():
-  if not request.is_json:
-    return False, jsonify({"msg": "Missing JSON in request"}), 400
-
-#  if not request.json.get('auth_url'):
-#    return False, jsonify({"msg": "auth_url is missing"}), 400
-  return True, jsonify({"try...": "%s/v1/" % request.headers['host']}), 200
-
-def token_validator():
-  result, json, http_code = check_token()
-  if result:
-    token = request.headers['X-Auth-Token']
-###    auth_url = request.json.get('auth_url')
-    try:
-      auth_origin = v3.Password(
-        auth_url=CONF.keystone_authtoken.auth_url,
-        username=CONF.keystone_authtoken.username,
-        password=CONF.keystone_authtoken.password,
-        project_name=CONF.keystone_authtoken.project_name,
-        user_domain_name=CONF.keystone_authtoken.user_domain_name,
-        project_domain_name=CONF.keystone_authtoken.project_domain_name
-      )
-      sess = session.Session(auth=auth_origin)
-      keystone = keystoneC.Client(session=sess)
-###      auth_token = v3.Token(
-###        auth_url = auth_url,
-###        token = token
-###      )
-###      sess_token = session.Session(auth=auth_token)
-###      keystone = keystoneC.Client(session=sess_token)
-      keystone.tokens.validate(token)
-      return True, jsonify({"status": "everything is ok - nice if have some way to add all options here like a help -"}), 200
-    except Exception as e:
-      return False, jsonify({"ERROR": "%s" % e}), 400
-  else:
-    return result, json, http_code
-
-#@app.route('/', methods=['POST'])
-#def hello():
-#  result, json, http_code = check_headers()
-#  return json, http_code
-
-@app.route('/v1', methods=['GET'])
-def v1():
-  result, json, http_code = token_validator()
-  return json, http_code
-
-@app.route('/v1/nodes', methods=['POST', 'GET'])
-def v1nodes():
-  result, json, http_code = token_validator()
-  if result:
-    if request.method == 'GET':
-      return jsonify({"nodes": {}}), 200
-    if request.method == 'POST':
-      result_1, json_1, http_code_1 = check_headers()
-      return json_1, http_code_1
-  else:
-    return json, http_code
 
 if __name__=='__main__':
   app.run(host='0.0.0.0', port=8088)
+
+
+##from flask import Flask
+##from flask import request, jsonify
+##from keystoneauth1.identity import v3
+##from keystoneauth1 import session
+##from keystoneclient.v3 import client as keystoneC
+##from oslo_config import cfg
+##
+##app = Flask(__name__)
+##
+##CONF = cfg.CONF
+##keystone_authtoken = cfg.OptGroup(name = "keystone_authtoken")
+##keystone_authtoken_opts=[
+##  cfg.StrOpt('project_domain_name', default = '', help = ''),
+##  cfg.StrOpt('project_name', default = '', help = ''),
+##  cfg.StrOpt('user_domain_name', default = '', help = ''),
+##  cfg.StrOpt('password', default = '', help = ''),
+##  cfg.StrOpt('username', default = '', help = ''),
+##  cfg.StrOpt('auth_url', default = '', help = ''),
+##  cfg.StrOpt('region', default = '', help = ''),
+##]
+##CONF.register_group(keystone_authtoken)
+##CONF.register_opts(keystone_authtoken_opts, keystone_authtoken)
+##CONF(default_config_files=['tyc.conf',])
+##
+##def check_token():
+##  if not request.headers.get('X-Auth-Token'):
+##    return False, jsonify({"msg": "X-Auth-Token is missing"}), 400
+##  return True, jsonify({"try...": "%s/v1/" % request.headers['host']}), 200
+##
+##def token_validator():
+##  result, json, http_code = check_token()
+##  if result:
+##    token = request.headers['X-Auth-Token']
+##    try:
+##      auth_origin = v3.Password(
+##        auth_url=CONF.keystone_authtoken.auth_url,
+##        username=CONF.keystone_authtoken.username,
+##        password=CONF.keystone_authtoken.password,
+##        project_name=CONF.keystone_authtoken.project_name,
+##        user_domain_name=CONF.keystone_authtoken.user_domain_name,
+##        project_domain_name=CONF.keystone_authtoken.project_domain_name
+##      )
+##      sess = session.Session(auth=auth_origin)
+##      keystone = keystoneC.Client(session=sess)
+##      keystone.tokens.validate(token)
+##      return True, jsonify({"status": "everything is ok - nice if have some way to add all options here like a help -"}), 200
+##    except Exception as e:
+##      return False, jsonify({"ERROR": "%s" % e}), 400
+##  else:
+##    return result, json, http_code
+##
+##def add_node(name="", ipaddress="", password="", user=""):
+##  return jsonify({name: {"ipaddress": ipaddress, "password":password, "user":user} }), 200
+##
+##def check_headers(f_json):
+##  if not request.is_json:
+##    return False, jsonify({"msg": "Missing JSON in request"}), 400
+##  for i in f_json:
+##    if not request.json.get(i):
+##      return False, jsonify({"msg": "%s is missing" % i}), 400
+##  return True, jsonify({"try...": "%s/v1/" % request.headers['host']}), 200
+##
+##@app.route('/v1', methods=['GET'])
+##def v1():
+##  result, json, http_code = token_validator()
+##  return json, http_code
+##
+##@app.route('/v1/nodes', methods=['POST', 'GET'])
+##def v1nodes():
+##  result, json, http_code = token_validator()
+##  if result:
+##    if request.method == 'GET':
+##      return jsonify({"nodes": {}}), 200
+##    if request.method == 'POST':
+##      required_json = ['name', 'ipaddress', "password", "user" ]
+##      result_1, json_1, http_code_1 = check_headers(required_json)
+##      if not result_1:
+##        return json_1, http_code_1
+##      return add_node(  
+##                name = request.json.get('name'), 
+##                ipaddress = request.json.get('ipaddress'), 
+##                password = request.json.get('password'),
+##                user = request.json.get('user')
+##             )
+##  else:
+##    return json, http_code
