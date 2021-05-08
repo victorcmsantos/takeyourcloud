@@ -35,10 +35,9 @@ token = sess.get_token()
 keystone = keystoneC.Client(session=sess)
 
 service_id = keystone.services.list(type='cloudaas')[0].id
-cloudaas_public_url = keystone.endpoints.list(service=service_id, interface='internal', region=OS_REGION_NAME)[0].url
-
 print(token)
-#print(OS_AUTH_URL)
+cloudaas_public_url = sess.get_endpoint(service_type='cloudaas', interface='public', region_name=OS_REGION_NAME)
+#print(cloudaas_public_url)
 
 if len(sys.argv)==1:
   get_v1 = requests.get("%s/v1" % cloudaas_public_url, headers = {'X-Auth-Token': token} )
@@ -55,5 +54,4 @@ if args.add_node:
   #nodes_post = requests.post("%s/v1/nodes" % cloudaas_public_url, headers = {'X-Auth-Token': token}, json={'auth_url': OS_AUTH_URL} )
   print(nodes_post.content)
   sys.exit(0)
-
 
