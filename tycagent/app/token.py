@@ -14,6 +14,7 @@ keystone_authtoken_opts=[
   cfg.StrOpt('username', default = '', help = ''),
   cfg.StrOpt('auth_url', default = '', help = ''),
   cfg.StrOpt('region', default = '', help = ''),
+  cfg.StrOpt('interface', default = '', help = ''),
 ]
 CONF.register_group(keystone_authtoken)
 CONF.register_opts(keystone_authtoken_opts, keystone_authtoken)
@@ -31,7 +32,7 @@ def token_validator():
     )
     sess = session.Session(auth=auth_origin)
     token = sess.get_token()
-    keystone = keystoneC.Client(session=sess)
+    keystone = keystoneC.Client(session=sess, interface=CONF.keystone_authtoken.interface)
     service_id = keystone.services.list(type='cloudaas')[0].id
     cloudaas_public_url = keystone.endpoints.list(service=service_id, interface='internal', region=CONF.keystone_authtoken.region)[0].url
     return True, json.dumps({"token": token,"cloudaas": cloudaas_public_url})

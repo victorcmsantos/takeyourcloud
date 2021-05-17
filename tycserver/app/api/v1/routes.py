@@ -36,3 +36,8 @@ def v1nodes_uuid(node_uuid):
   else:
     return json, http_code
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+  return "as"
+

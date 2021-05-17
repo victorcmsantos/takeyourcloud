@@ -16,6 +16,7 @@ keystone_authtoken_opts=[
   cfg.StrOpt('username', default = '', help = ''),
   cfg.StrOpt('auth_url', default = '', help = ''),
   cfg.StrOpt('region', default = '', help = ''),
+  cfg.StrOpt('interface', default = '', help = ''),
 ]
 CONF.register_group(keystone_authtoken)
 CONF.register_opts(keystone_authtoken_opts, keystone_authtoken)
@@ -35,7 +36,7 @@ def token_validator(request):
         project_domain_name=CONF.keystone_authtoken.project_domain_name
       )
       sess = session.Session(auth=auth_origin)
-      keystone = keystoneC.Client(session=sess)
+      keystone = keystoneC.Client(session=sess, interface=CONF.keystone_authtoken.interface)
       keystone.tokens.validate(token)
       return True, jsonify({"status": "everything is ok - nice if have some way to add all options here like a help -"}), 200
     except Exception as e:

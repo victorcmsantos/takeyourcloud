@@ -32,7 +32,7 @@ auth_origin = v3.Password(
 
 sess = session.Session(auth=auth_origin)
 token = sess.get_token()
-keystone = keystoneC.Client(session=sess)
+keystone = keystoneC.Client(session=sess, interface='public')
 
 service_id = keystone.services.list(type='cloudaas')[0].id
 print(token)

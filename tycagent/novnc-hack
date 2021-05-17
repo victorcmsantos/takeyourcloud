@@ -1,0 +1,25 @@
+from flask import Flask, redirect, request
+import re
+import hashlib
+
+app = Flask(__name__)
+
+def valid_uuid(url):
+  uuid = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", url)
+  print(uuid[0])
+  uuid = uuid[0].encode('utf-8')
+  the_hash = hashlib.sha256(uuid).hexdigest()
+  return (the_hash)
+
+@app.route('/vnc_auto.html')
+def hello_world():
+  ####return redirect("http://192.168.122.105:8088/vnc_auto.html?path=%3Ftoken%3Dd0297749-8a61-4f0c-8935-b2a648bcaf44", code=302)
+  #url="http://192.168.122.105:8088/vnc_auto.html?%s" % request.query_string.decode()
+  #return redirect(url, code=302)
+
+  valid_uuid(request.query_string.decode("utf-8"))
+  return 'Hello, World!'
+
+if __name__=='__main__':
+  app.run(host='0.0.0.0', port=6080)
+

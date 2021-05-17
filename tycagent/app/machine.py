@@ -33,7 +33,7 @@ def m_execute():
     nodes_post = requests.post(
                    "%s/v1/nodes" % t_json.get('cloudaas'), 
                    headers = {'X-Auth-Token': t_json.get('token')}, 
-                   json={"name": "akaaaaaakaakaassasss"}
+                   json={"name": "akaasdsadasdasdsadsadsadasdasd"}
                    #json={"name": socket.getfqdn()}
                 )
     if nodes_post.status_code == 308:

@@ -7,8 +7,22 @@ from app import app, db
 #
 #print(the_file)
 
+#from oslo_utils import strutils
+#from oslo_utils import timeutils
+#from oslo_utils import uuidutils
 
-if __name__=='__main__':
-  app.run(host='0.0.0.0', port=8088)
+import hashlib
+
+uuid = 'bae104ac-8e72-42ce-9651-7bd4862834cb'
+uuid = uuid.encode('utf-8')
+hashlib.sha256(uuid).hexdigest()
+
+print(hashlib.sha256(uuid).hexdigest())
+
+#token_hash = utils.get_sha256_str('fab5552-4a7f-42f8-9cc5-92cb8a1f15ed')
+
+#
+#if __name__=='__main__':
+#  app.run(host='0.0.0.0', port=8088)
 
 

@@ -1,24 +1,122 @@
+add-apt-repository cloud-archive:train -y
 apt install nova-compute crudini -y
-crudini --set /etc/nova/nova.conf DEFAULT transport_url rabbit://openstack:RABBIT_PASS@simplecontroller 
-crudini --set /etc/nova/nova.conf keystone_authtoken auth_url http://simplecontroller:5000/v3
-crudini --set /etc/nova/nova.conf keystone_authtoken memcached_servers simplecontroller:11211
+crudini --set /etc/nova/nova.conf DEFAULT transport_url rabbit://nova:password@201.44.3.117:30360/nova 
+
+crudini --set /etc/nova/nova.conf api auth_strategy keystone
+
+crudini --set /etc/nova/nova.conf keystone_authtoken www_authenticate_uri http://identity.test1.mixcloud.io/v3
+crudini --set /etc/nova/nova.conf keystone_authtoken auth_url http://identity.test1.mixcloud.io/v3
 crudini --set /etc/nova/nova.conf keystone_authtoken auth_type password
-crudini --set /etc/nova/nova.conf keystone_authtoken project_domain_name Default
-crudini --set /etc/nova/nova.conf keystone_authtoken user_domain_name Default
+crudini --set /etc/nova/nova.conf keystone_authtoken project_domain_name service
+crudini --set /etc/nova/nova.conf keystone_authtoken user_domain_name service
 crudini --set /etc/nova/nova.conf keystone_authtoken project_name service
 crudini --set /etc/nova/nova.conf keystone_authtoken username nova
-crudini --set /etc/nova/nova.conf keystone_authtoken password NOVA_PASS
-crudini --set /etc/nova/nova.conf placement region_name EURegion
-crudini --set /etc/nova/nova.conf placement project_domain_name Default
+crudini --set /etc/nova/nova.conf keystone_authtoken password password
+
+crudini --set /etc/nova/nova.conf placement project_domain_name service
 crudini --set /etc/nova/nova.conf placement project_name service
 crudini --set /etc/nova/nova.conf placement auth_type password
-crudini --set /etc/nova/nova.conf placement user_domain_name Default
-crudini --set /etc/nova/nova.conf placement auth_url http://simplecontroller:5000/v3
+crudini --set /etc/nova/nova.conf placement user_domain_name service
+crudini --set /etc/nova/nova.conf placement auth_url http://identity.test1.mixcloud.io/v3
 crudini --set /etc/nova/nova.conf placement username placement
-crudini --set /etc/nova/nova.conf placement password PLACEMENT_PASS
+crudini --set /etc/nova/nova.conf placement password password
+crudini --set /etc/nova/nova.conf placement valid_interfaces public
+crudini --set /etc/nova/nova.conf placement region_name RegionOne
+
 crudini --set /etc/nova/nova.conf vnc enabled true
-crudini --set /etc/nova/nova.conf vnc server_listen 0.0.0.0
-crudini --set /etc/nova/nova.conf vnc server_proxyclient_address 192.168.88.11
-crudini --set /etc/nova/nova.conf vnc novncproxy_base_url http://192.168.88.7:6080/vnc_auto.html
-crudini --set /etc/nova/nova.conf glance api_servers http://simplecontroller:9292
+crudini --set /etc/nova/nova.conf vnc vncserver_listen 0.0.0.0
+#crudini --set /etc/nova/nova.conf vnc novncproxy_port 6080
+#crudini --set /etc/nova/nova.conf vnc novncproxy_host 0.0.0.0
+crudini --set /etc/nova/nova.conf vnc server_proxyclient_address 192.168.122.104
+crudini --set /etc/nova/nova.conf vnc novncproxy_base_url http://192.168.122.104:6080/vnc_auto.html
+
+crudini --set /etc/nova/nova.conf neutron auth_url http://identity.test1.mixcloud.io/v3
+crudini --set /etc/nova/nova.conf neutron auth_type password
+crudini --set /etc/nova/nova.conf neutron project_domain_name service
+crudini --set /etc/nova/nova.conf neutron user_domain_name service
+crudini --set /etc/nova/nova.conf neutron project_name service
+crudini --set /etc/nova/nova.conf neutron username neutron
+crudini --set /etc/nova/nova.conf neutron password password
+crudini --set /etc/nova/nova.conf neutron region_name RegionOne
+crudini --set /etc/nova/nova.conf neutron valid_interfaces public
+crudini --set /etc/nova/nova.conf oslo_concurrency lock_path /var/lib/nova/tmp
+crudini --set /etc/nova/nova.conf glance api_servers http://image.test1.mixcloud.io/
+
 if egrep -q '(vmx|svm)' /proc/cpuinfo; then crudini --set /etc/nova/nova-compute.conf libvirt virt_type kvm; else crudini --set /etc/nova/nova-compute.conf libvirt virt_type qemu; fi
+
+apt install neutron-openvswitch-agent neutron-plugin-ml2 neutron-dhcp-agent neutron-metadata-agent openvswitch-switch -y 
+modprobe br_netfilter
+crudini --set /etc/neutron/neutron.conf DEFAULT transport_url rabbit://neutron:password@201.44.3.117:30360/neutron
+crudini --set /etc/neutron/neutron.conf DEFAULT auth_strategy keystone
+crudini --set /etc/neutron/neutron.conf DEFAULT core_plugin ml2
+crudini --set /etc/neutron/neutron.conf DEFAULT service_plugins ""
+crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_status_changes true
+crudini --set /etc/neutron/neutron.conf DEFAULT notify_nova_on_port_data_changes true
+crudini --set /etc/neutron/neutron.conf DEFAULT dhcp_agents_per_network 2
+
+crudini --set /etc/neutron/neutron.conf keystone_authtoken www_authenticate_uri http://identity.test1.mixcloud.io/v3
+crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_url http://identity.test1.mixcloud.io/v3
+crudini --set /etc/neutron/neutron.conf keystone_authtoken auth_type password
+crudini --set /etc/neutron/neutron.conf keystone_authtoken project_domain_name service
+crudini --set /etc/neutron/neutron.conf keystone_authtoken user_domain_name service
+crudini --set /etc/neutron/neutron.conf keystone_authtoken project_name service
+crudini --set /etc/neutron/neutron.conf keystone_authtoken username neutron
+crudini --set /etc/neutron/neutron.conf keystone_authtoken password password
+crudini --set /etc/neutron/neutron.conf keystone_authtoken region_name RegionOne
+
+crudini --set /etc/neutron/neutron.conf oslo_concurrency lock_path /var/lib/neutron/tmp
+
+crudini --set /etc/neutron/neutron.conf nova auth_url http://identity.test1.mixcloud.io/v3
+crudini --set /etc/neutron/neutron.conf nova auth_type password
+crudini --set /etc/neutron/neutron.conf nova project_domain_name service
+crudini --set /etc/neutron/neutron.conf nova user_domain_name service
+crudini --set /etc/neutron/neutron.conf nova project_name service
+crudini --set /etc/neutron/neutron.conf nova username nova
+crudini --set /etc/neutron/neutron.conf nova password password
+
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT verbose True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT resync_interval 30
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT interface_driver neutron.agent.linux.interface.OVSInterfaceDriver
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dhcp_driver neutron.agent.linux.dhcp.Dnsmasq
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT use_namespaces True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT force_metadata True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT enable_isolated_metadata True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT enable_metadata_network True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dnsmasq_config_file /etc/neutron/dnsmasq-neutron.conf
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT state_path /var/lib/neutron
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dhcp_broadcast_reply False
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT dhcp_delete_namespaces True
+crudini --set /etc/neutron/dhcp_agent.ini DEFAULT root_helpersudo neutron-rootwrap /etc/neutron/rootwrap.conf
+
+crudini --set /etc/neutron/dnsmasq-neutron.conf "" dhcp-option-force 26,1450
+
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT auth_url http://identity.test1.mixcloud.io/v3
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT auth_region RegionOne
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT auth_plugin password
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT project_domain_id service
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT user_domain_id service
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT project_name service
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT username neutron
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT password password
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT nova_metadata_host metadata.test1.mixcloud.io
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT nova_metadata_port 80
+crudini --set /etc/neutron/metadata_agent.ini DEFAULT metadata_proxy_shared_secret password
+
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers flat
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types ""
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers openvswitch
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_flat flat_networks public
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_security_group True
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup firewall_driver neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+crudini --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_ipset True
+
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini ovs enable_tunneling True
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini ovs local_ip 192.168.122.104
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini ovs integration_bridge br-int
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini ovs bridge_mappings public:br-ex
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini agent tunnel_types vxlan
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini agent vxlan_udp_port 4789
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini securitygroup firewall_driver neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini securitygroup enable_security_group True
+crudini --set /etc/neutron/plugins/ml2/openvswitch_agent.ini securitygroup enable_ipset True
+
