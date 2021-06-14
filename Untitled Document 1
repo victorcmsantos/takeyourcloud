@@ -30,29 +30,3 @@ websockify -D --web=/usr/share/novnc/ 8088 --target-config=/usr/share/novnc/kvm.
 
 
 
-
-
-
-
-
-
-
-CREATE TABLE `console_auth_tokens` (
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `id` int(11) NOT NULL ,
-  `token_hash` varchar(255) NOT NULL,
-  `console_type` varchar(255) NOT NULL,
-  `host` varchar(255) NOT NULL,
-  `port` int(11) NOT NULL,
-  `internal_access_path` varchar(255) DEFAULT NULL,
-  `instance_uuid` varchar(36) NOT NULL,
-  `expires` int(11) NOT NULL,
-  `access_url_base` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_console_auth_tokens0token_hash` (`token_hash`),
-  KEY `console_auth_tokens_host_expires_idx` (`host`,`expires`),
-  KEY `console_auth_tokens_token_hash_idx` (`token_hash`),
-  KEY `console_auth_tokens_instance_uuid_idx` (`instance_uuid`),
-  KEY `console_auth_tokens_token_hash_instance_uuid_idx` (`token_hash`,`instance_uuid`)
-);

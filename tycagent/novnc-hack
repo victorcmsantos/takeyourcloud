@@ -1,25 +1,47 @@
 from flask import Flask, redirect, request
 import re
 import hashlib
+import requests
+import json
+#import os
+import subprocess
 
 app = Flask(__name__)
 
+def getvnc(uuid):
+  htmljson = requests.post("http://tyc-novncauth.test1.mixcloud.io" , headers = {'VNC-TOKEN-UUID': uuid} )
+  if htmljson.status_code == 200:
+    return True, htmljson.content, 200
+  else:
+    return False, htmljson.content, 400
+
 def valid_uuid(url):
   uuid = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", url)
-  print(uuid[0])
   uuid = uuid[0].encode('utf-8')
-  the_hash = hashlib.sha256(uuid).hexdigest()
-  return (the_hash)
+  tycnovncauth = getvnc(uuid)
+  return tycnovncauth
+
+def writefile(jsonmsg):
+  y = json.loads(jsonmsg)
+  x=y['novnc']
+  f = open("/usr/share/novnc/kvm.conf", "w")
+  f.write("%s: %s:%s" % (x[0], x[1], x[2]) )
+  f.close()
+
 
 @app.route('/vnc_auto.html')
 def hello_world():
-  ####return redirect("http://192.168.122.105:8088/vnc_auto.html?path=%3Ftoken%3Dd0297749-8a61-4f0c-8935-b2a648bcaf44", code=302)
-  #url="http://192.168.122.105:8088/vnc_auto.html?%s" % request.query_string.decode()
-  #return redirect(url, code=302)
-
-  valid_uuid(request.query_string.decode("utf-8"))
-  return 'Hello, World!'
+  result, jsonmsg, jsoncode = valid_uuid(request.query_string.decode("utf-8"))
+  if result:
+    writefile(jsonmsg)
+    url="http://192.168.122.105:8088/vnc_auto.html?%s" % request.query_string.decode()
+    return redirect(url, code=302)
+  else:
+    return jsonmsg, jsoncode
 
 if __name__=='__main__':
+  #os.system("/usr/bin/websockify -D --web=/usr/share/novnc/ 8088 --target-config=/usr/share/novnc/kvm.conf &")
+  subprocess.Popen(['websockify', '--web=/usr/share/novnc/', '8088', '--target-config=/usr/share/novnc/kvm.conf'])
+  #os.spawnl(os.P_DETACH, 'websockify', '-D', '--web=/usr/share/novnc/', '8088', '--target-config=/usr/share/novnc/kvm.conf')
   app.run(host='0.0.0.0', port=6080)
 
